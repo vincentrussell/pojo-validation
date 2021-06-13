@@ -18,8 +18,8 @@ public final class RegexValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param regex
-     * @param flags
+     * @param regex the regex to use
+     * @param flags the flags for the regex
      */
     public RegexValidator(@ConstructorParam("regex") final String regex, @ConstructorParam("flags") final int flags) {
         this.pattern = Pattern.compile(regex, flags);

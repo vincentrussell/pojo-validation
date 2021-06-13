@@ -37,9 +37,9 @@ public final class ValidationUtils {
 
     /**
      * Null safe comparison for {@link Number}s as {@link BigDecimal}.
-     * @param n1
-     * @param n2
-     * @param <T>
+     * @param n1 the first number
+     * @param n2 the second number
+     * @param <T> a type that is a {@link Number}
      * @return a negative integer, zero, or a positive integer as the first object is less than,
      * equal to, or greater than the second object.
      */
@@ -57,9 +57,9 @@ public final class ValidationUtils {
 
     /**
      * Null safe comparison for {@link BigDecimal}s.
-     * @param n1
-     * @param n2
-     * @param <T>
+     * @param n1 the first number
+     * @param n2 the second number
+     * @param <T> a type that is a {@link Number}
      * @return a negative integer, zero, or a positive integer as the first object is less than,
      * equal to, or greater than the second object.
      */
@@ -68,14 +68,14 @@ public final class ValidationUtils {
     }
 
     /**
-     *  Null safe comparison for {@link Comparable}s. <br/>
+     *  Null safe comparison for {@link Comparable}s. <br>
      * <b>Be careful when you place this method inside {@link Comparable#compareTo(Object)} as such a
      *  method call will loop.</b>
-     * @param c1
-     * @param c2
-     * @param <T>
+     * @param c1 the first number to compare
+     * @param c2 the second number to compare
      * @return a negative integer, zero, or a positive integer as the first object is less than,
      * equal to, or greater than the second object.
+     * @param <T> the type number that need to be compared
      */
     public static <T extends Comparable<T>> int compareTo(final T c1, final T c2) {
         final boolean firstArgumentIsNull = c1 == null;

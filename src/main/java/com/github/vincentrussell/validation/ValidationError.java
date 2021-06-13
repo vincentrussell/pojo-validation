@@ -58,7 +58,7 @@ public class ValidationError {
      * Set the value that was used.
      *
      * @param value the value that was used
-     * @return @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
+     * @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
      */
     public ValidationError setValue(final Object value) {
         this.value = value;
@@ -87,7 +87,7 @@ public class ValidationError {
      * set the field.
      *
      * @param field the text path of the field.
-     * @return @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
+     * @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
      */
     public ValidationError setField(final String field) {
         this.field = field;
@@ -99,7 +99,7 @@ public class ValidationError {
      * {@link java.util.Stack} of field names.
      *
      * @param pathStack the path stack of field names.
-     * @return @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
+     * @return {@link com.github.vincentrussell.validation.ValidationError} this is a builder.
      */
     public ValidationError setField(final Stack<String> pathStack) {
         StringBuilder stringBuilder = new StringBuilder();

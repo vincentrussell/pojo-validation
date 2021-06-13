@@ -22,7 +22,7 @@ public final class MinValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param min
+     * @param min the minimum value
      */
     public MinValidator(@ConstructorParam("min") final long min) {
         this.min = min;

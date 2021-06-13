@@ -3,7 +3,7 @@ package com.github.vincentrussell.validation;
 /**
  * The principal interface that is used for validators to validate pojos.
  *
- * @param <T>
+ * @param <T> the type of object that is to be validated.
  */
 public interface Validator<T> {
 
@@ -11,7 +11,7 @@ public interface Validator<T> {
      * This function is called from the @{@link com.github.vincentrussell.validation.ValidationService} in order to
      * validate a pojo.
      *
-     * @param object
+     * @param object the object to be validated
      * @return a {@link com.github.vincentrussell.validation.ValidationError} if there are errors.  Returns nothing if
      * there are no errors
      */

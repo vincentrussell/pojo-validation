@@ -11,7 +11,7 @@ import java.util.List;
 /**
  * Class that is used to represent a tree structure.
  *
- * @param <T>
+ * @param <T> the type of the leaf elements on this tree.
  */
 public final class TreeNode<T> {
 
@@ -23,7 +23,7 @@ public final class TreeNode<T> {
     /**
      * Default constructor that takes the data.
      *
-     * @param data
+     * @param data trunk node for this tree
      */
     public TreeNode(final T data) {
         this.data = data;

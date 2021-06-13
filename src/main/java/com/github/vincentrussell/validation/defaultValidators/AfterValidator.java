@@ -14,8 +14,8 @@ public final class AfterValidator implements Validator {
 
     /**
      * Default constructor.
-     * @param format
-     * @param dateTime
+     * @param format the {@link DateTimeFormatter} date format
+     * @param dateTime the date/time that matches the format
      */
     public AfterValidator(@ConstructorParam("format") final String format,
                           @ConstructorParam("dateTime") final String dateTime) {

@@ -26,8 +26,8 @@ public final class SizeValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param min
-     * @param max
+     * @param min the min value
+     * @param max the max value
      */
     public SizeValidator(@ConstructorParam("min") final int min,
                          @ConstructorParam("max") final int max) {

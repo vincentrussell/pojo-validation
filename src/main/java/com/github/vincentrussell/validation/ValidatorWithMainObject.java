@@ -14,8 +14,8 @@ public interface ValidatorWithMainObject<T, K> extends Validator {
      * This function is called from the @{@link com.github.vincentrussell.validation.ValidationService} in order to
      * validate a pojo.
      *
-     * @param object
-     * @param mainObject
+     * @param object the object that is being validated
+     * @param mainObject the main object that was used for validation in the {@link ValidationService}
      * @return a {@link com.github.vincentrussell.validation.ValidationError} if there are errors.  Returns nothing if
      * there are no errors
      */
@@ -26,7 +26,7 @@ public interface ValidatorWithMainObject<T, K> extends Validator {
      * This method should not be used for {@link ValidatorWithMainObject}.
      * Use {@link ValidatorWithMainObject#validate(Object, Object)} instead.
      *
-     * @param object
+     * @param object the object that is being validated.
      * @return a {@link com.github.vincentrussell.validation.ValidationError} if there are errors.  Returns nothing if
      * there are no errors
      */

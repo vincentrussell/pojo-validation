@@ -13,6 +13,7 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * Validate that a date value is after the specified date.
  * <p>
  * Supported types are:
+ * </p>
  * <ul>
  * <li>ZonedDateTime</li>
  * <li>LocalDateTime</li>
@@ -22,7 +23,6 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
  * <li>LocalDate</li>
  * <li>Long</li>
  * </ul>
- * </p>
  */
 @Target(value = {FIELD})
 @Retention(value = RUNTIME)

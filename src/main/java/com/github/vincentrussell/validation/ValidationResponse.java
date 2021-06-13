@@ -14,7 +14,7 @@ public class ValidationResponse {
     /**
      * Add an error to this {@link com.github.vincentrussell.validation.ValidationResponse}.
      *
-     * @param validationError
+     * @param validationError the {@link ValidationError} to be addeded
      */
     public void addError(final ValidationError validationError) {
         validationErrors.add(validationError);

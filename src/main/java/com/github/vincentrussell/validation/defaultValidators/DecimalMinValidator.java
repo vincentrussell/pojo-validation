@@ -24,7 +24,7 @@ public final class DecimalMinValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param min
+     * @param min the minimum value
      */
     public DecimalMinValidator(@ConstructorParam("min") final String min) {
         this.min = new BigDecimal(min);

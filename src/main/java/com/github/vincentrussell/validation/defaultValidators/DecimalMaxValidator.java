@@ -24,7 +24,7 @@ public final class DecimalMaxValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param max
+     * @param max the maximum value
      */
     public DecimalMaxValidator(@ConstructorParam("max") final String max) {
         this.max = new BigDecimal(max);

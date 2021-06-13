@@ -21,11 +21,11 @@ public final class ReflectionUtils {
     /**
      * Get the value from an annotation.
      *
-     * @param annotatedElement
-     * @param annotationClass
-     * @param methodName
-     * @param <T>
-     * @return the value from the {@link java.lang.annotation.Annotation}.
+     * @param annotatedElement  the field or method that has the annotation
+     * @param annotationClass the annotation like {@link com.github.vincentrussell.validation.annotation.NotNull}
+     * @param methodName the method name on the annotation
+     * @param <T> the type that is returned by invoking the method.
+     * @return the value from invoking the method on this {@link java.lang.annotation.Annotation} or null.
      */
     public static <T> T getAnnotationValue(final AnnotatedElement annotatedElement,
                                            final Class annotationClass, final String methodName) {
@@ -46,10 +46,10 @@ public final class ReflectionUtils {
     /**
      * Get a value for a field.
      *
-     * @param field
-     * @param object
+     * @param field the field to access
+     * @param object the object that contains the field
      * @return the value at that field.
-     * @throws IllegalAccessException
+     * @throws IllegalAccessException if the field can not be accessed
      */
     public static Object getValue(final Field field, final Object object) throws IllegalAccessException {
         if (object == null) {

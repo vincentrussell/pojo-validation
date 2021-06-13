@@ -22,7 +22,7 @@ public final class MaxValidator implements Validator {
     /**
      * Default constructor.
      *
-     * @param max
+     * @param max the max value
      */
     public MaxValidator(@ConstructorParam("max") final long max) {
         this.max = max;

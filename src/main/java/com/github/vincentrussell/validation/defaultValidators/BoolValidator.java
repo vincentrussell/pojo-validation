@@ -15,7 +15,7 @@ public final class BoolValidator implements Validator {
 
     /**
      * Default constructor.
-     * @param bool
+     * @param bool the boolean that this validator should match
      */
     public BoolValidator(@ConstructorParam("value") final Boolean bool) {
         this.bool = bool;

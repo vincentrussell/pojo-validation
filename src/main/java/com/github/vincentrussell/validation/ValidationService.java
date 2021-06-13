@@ -302,9 +302,9 @@ public final class ValidationService {
     /**
      * add a {@link com.github.vincentrussell.validation.type.TypeDeterminer} for a particular class.
      *
-     * @param objectWithTypeClass
-     * @param typeDeterminer
-     * @param <T>
+     * @param objectWithTypeClass main object class
+     * @param typeDeterminer the class that is used to determine the type for that class
+     * @param <T> the type of the main class.  Makes sure that tye {@link TypeDeterminer} corresponds to the class
      */
     public <T> void addTypeDeterminer(final Class<T> objectWithTypeClass, final TypeDeterminer<T> typeDeterminer) {
         LOGGER.info("addTypeDeterminer objectWithTypeClass={}, typeDeterminer={}", objectWithTypeClass, typeDeterminer);
@@ -314,8 +314,8 @@ public final class ValidationService {
     /**
      * add multiple {@link TypeDeterminer}s  in the form of a map.
      *
-     * @param map the map of class to {@link com.github.vincentrussell.validation.type.TypeDeterminer}
-     * @param <T>
+     * @param map the map of main class to {@link com.github.vincentrussell.validation.type.TypeDeterminer}
+     * @param <T> the type of the main class.  Makes sure that tye {@link TypeDeterminer} corresponds to the class
      */
     public <T> void addTypeDeterminers(final Map<? extends Class<T>, ? extends TypeDeterminer<T>> map) {
         classToTypeDeterminerMap.forEach((objectWithTypeClass, typeDeterminer)
@@ -340,7 +340,7 @@ public final class ValidationService {
      * Validate the pojo based on the provided {@link com.github.vincentrussell.validation.Validator}s.  And the
      * {@link com.github.vincentrussell.validation.annotation.Validation} annotations.
      *
-     * @param object
+     * @param object the object that can be validate.  All fields will be checked recursively for validation.
      * @return the {@link com.github.vincentrussell.validation.ValidationResponse} that will contain all of the
      * {@link com.github.vincentrussell.validation.ValidationError}s.
      */

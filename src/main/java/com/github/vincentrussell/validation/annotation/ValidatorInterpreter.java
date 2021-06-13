@@ -28,9 +28,9 @@ public final class ValidatorInterpreter {
     /**
      * Default constructor.
      *
-     * @param customValidationAnnotation
-     * @param fieldValidation
-     * @param field
+     * @param customValidationAnnotation the custom validation annotation like {@link NotNull}
+     * @param fieldValidation the annotation on the field
+     * @param field the field that has the annotation
      */
     public ValidatorInterpreter(final Class customValidationAnnotation,
                                 final Annotation fieldValidation, final Field field) {
