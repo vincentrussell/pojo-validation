@@ -14,6 +14,7 @@ import com.github.vincentrussell.validation.annotation.Null;
 import com.github.vincentrussell.validation.annotation.Past;
 import com.github.vincentrussell.validation.annotation.PathAlias;
 import com.github.vincentrussell.validation.annotation.Regex;
+import com.github.vincentrussell.validation.annotation.Required;
 import com.github.vincentrussell.validation.annotation.Size;
 import com.github.vincentrussell.validation.annotation.Validation;
 import com.github.vincentrussell.validation.annotation.ValidatorInterpreter;
@@ -77,7 +78,7 @@ public final class ValidationService {
         paramsSet.add(After.class.getPackage().getName());
         paramsSet.addAll(Arrays.asList(After.class, Before.class, Future.class, Past.class, NotNull.class, Null.class,
                 Size.class, NotEmpty.class, Regex.class, Max.class, Min.class, DecimalMax.class, DecimalMin.class,
-                Bool.class, Regex.class, Size.class));
+                Bool.class, Regex.class, Size.class, Required.class));
         final ReverseConnectionScanner reverseConnectionScanner = new ReverseConnectionScanner();
         this.reflections = new Reflections(ConfigurationBuilder.build(paramsSet.toArray(new Object[0]))
                 .setScanners(new FieldAnnotationsScanner(), reverseConnectionScanner));

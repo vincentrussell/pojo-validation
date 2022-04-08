@@ -315,6 +315,9 @@ public class ValidationServiceTest {
         assertEquals("field is not in within size constraints", validationResponse.findValidationErrorsForField("field2").get(0).getErrorMessage());
         object.setField2("2342wsfs");
         validationResponse = validationService.validate(object);
+        assertFalse(validationResponse.isValid());
+        object.setRequiredField("value");
+        validationResponse = validationService.validate(object);
         assertTrue(validationResponse.isValid());
     }
 

@@ -13,6 +13,7 @@ import com.github.vincentrussell.validation.defaultValidators.NotNullValidator;
 import com.github.vincentrussell.validation.defaultValidators.NullValidator;
 import com.github.vincentrussell.validation.defaultValidators.PastValidator;
 import com.github.vincentrussell.validation.defaultValidators.RegexValidator;
+import com.github.vincentrussell.validation.defaultValidators.RequiredValidator;
 import com.github.vincentrussell.validation.defaultValidators.SizeValidator;
 import org.junit.Test;
 
@@ -104,6 +105,13 @@ public class ValidatorTest {
     }
 
     @Test
+    public void requiredValidatorNullObjectTests() throws Exception {
+        RequiredValidator requiredValidator = getValidator(RequiredValidator.class);
+        assertValidationSuccess(() -> requiredValidator.validate("not empty"));
+        assertValidationErrorThrowableMessage(() -> requiredValidator.validate(null), "value is null");
+    }
+
+    @Test
     public void nullValidatorNullTests() throws Exception {
         NullValidator notNullValidator = getValidator(NullValidator.class);
         assertValidationSuccess(() -> notNullValidator.validate(null));
@@ -122,6 +130,21 @@ public class ValidatorTest {
         assertValidationSuccess(() -> notEmptyValidator.validate(Arrays.asList("a")));
         assertValidationSuccess(() -> notEmptyValidator.validate(new String[]{"a"}));
         assertValidationSuccess(() -> notEmptyValidator.validate(new HashMap(){{
+            put("a", "a");
+        }}));
+    }
+
+    @Test
+    public void requiredValidatorNullTests() throws Exception {
+        RequiredValidator requiredValidator = getValidator(RequiredValidator.class);
+        assertValidationErrorThrowableMessage(() -> requiredValidator.validate(""), "string is empty");
+        assertValidationErrorThrowableMessage(() -> requiredValidator.validate(new ArrayList<>()), "collection is empty");
+        assertValidationErrorThrowableMessage(() -> requiredValidator.validate(new HashMap<>()), "map is empty");
+        assertValidationErrorThrowableMessage(() -> requiredValidator.validate(new String[0]), "array is empty");
+        assertValidationSuccess(() -> requiredValidator.validate("a"));
+        assertValidationSuccess(() -> requiredValidator.validate(Arrays.asList("a")));
+        assertValidationSuccess(() -> requiredValidator.validate(new String[]{"a"}));
+        assertValidationSuccess(() -> requiredValidator.validate(new HashMap(){{
             put("a", "a");
         }}));
     }

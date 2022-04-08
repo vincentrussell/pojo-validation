@@ -2,6 +2,7 @@ package com.github.vincentrussell.validation.testClasses.defaultValidators;
 
 import com.github.vincentrussell.validation.annotation.Max;
 import com.github.vincentrussell.validation.annotation.NotNull;
+import com.github.vincentrussell.validation.annotation.Required;
 import com.github.vincentrussell.validation.annotation.Size;
 
 public class SimpleObjectDefaultValidators {
@@ -14,6 +15,9 @@ public class SimpleObjectDefaultValidators {
 
     @Max(32)
     private long field3;
+
+    @Required
+    private String requiredField;
 
     public String getField1() {
         return field1;
@@ -39,6 +43,15 @@ public class SimpleObjectDefaultValidators {
 
     public SimpleObjectDefaultValidators setField3(long field3) {
         this.field3 = field3;
+        return this;
+    }
+
+    public String getRequiredField() {
+        return requiredField;
+    }
+
+    public SimpleObjectDefaultValidators setRequiredField(String requiredField) {
+        this.requiredField = requiredField;
         return this;
     }
 }
