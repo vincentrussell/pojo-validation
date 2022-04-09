@@ -13,23 +13,23 @@ import com.github.vincentrussell.validation.annotation.NotNull;
 import com.github.vincentrussell.validation.annotation.Past;
 import com.github.vincentrussell.validation.annotation.Regex;
 import com.github.vincentrussell.validation.annotation.Size;
+import com.github.vincentrussell.validation.testClasses.SimpleObjectWithNonEmptyValidation;
 import com.github.vincentrussell.validation.testClasses.deep.ObjectWithDeepNesting;
 import com.github.vincentrussell.validation.testClasses.deepWithCircular.ObjectWithDeepNestingWithCircular;
 import com.github.vincentrussell.validation.testClasses.defaultValidators.SimpleObjectDefaultValidators;
 import com.github.vincentrussell.validation.testClasses.nestedCollections.ObjectWithNestedCollectionObjects;
 import com.github.vincentrussell.validation.testClasses.nestedMaps.ObjectWithNestedMapObjects;
 import com.github.vincentrussell.validation.testClasses.nestedObjects.ObjectWithNestedObjects;
+import com.github.vincentrussell.validation.testClasses.simple.SimpleObject;
 import com.github.vincentrussell.validation.testClasses.simpleMultipleFields.SimpleObjectWithMultipleFields;
 import com.github.vincentrussell.validation.testClasses.typedValidator.SimpleObjectWithTypedValidator;
 import com.github.vincentrussell.validation.testClasses.typedWithMainObjectValidator.SimpleObjectWithTypedValidatorMainObject;
 import com.github.vincentrussell.validation.testClasses.withType.ObjectWithType;
-import com.github.vincentrussell.validation.testClasses.simple.SimpleObject;
-import com.github.vincentrussell.validation.testClasses.SimpleObjectWithNonEmptyValidation;
+import com.github.vincentrussell.validation.testClasses.withType.ObjectWithTypeAndAlias;
 import com.github.vincentrussell.validation.type.TypeDeterminer;
 import org.apache.commons.lang3.StringUtils;
 import org.junit.Test;
 import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.util.ReflectionUtils;
 
 import java.math.BigDecimal;
 import java.math.BigInteger;
@@ -38,14 +38,17 @@ import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 
+import static org.hamcrest.CoreMatchers.hasItems;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 public class ValidationServiceTest {
@@ -389,6 +392,35 @@ public class ValidationServiceTest {
         assertEquals(0, validationService.validate(testObjectWithAllValidators).findValidationErrorsForField("sizeValue").size());
 
     }
+
+
+    @Test
+    public void getAllFields() {
+        ValidationService validationService = new ValidationService(ObjectWithType.class);
+        validationService.addValidator(notNullValidator);
+        validationService.addTypeDeterminer(ObjectWithType.class, new ObjectWithTypeTypeDeterminer());
+        Collection<String> fields = validationService.getAllFields();
+        assertThat(fields, hasItems("ObjectWithType.type", "ObjectWithType.SubType.field1"));
+    }
+
+    @Test
+    public void getAllFieldsWithAliases() {
+        ValidationService validationService = new ValidationService(ObjectWithTypeAndAlias.class);
+        validationService.addValidator(notNullValidator);
+        Collection<String> fields = validationService.getAllFields();
+        assertThat(fields, hasItems("ObjectWithType.type", "ObjectWithTypeAndAlias.type", "ObjectWithType.SubType.field1", "ObjectWithTypeAndAlias.AliasedSubType.field1"));
+    }
+
+
+    @Test
+    public void getFieldsForTypeThatHaveValidator() {
+        ValidationService validationService = new ValidationService(ObjectWithType.class);
+        validationService.addValidator(notNullValidator);
+        validationService.addTypeDeterminer(ObjectWithType.class, new ObjectWithTypeTypeDeterminer());
+        Collection<String> fields = validationService.getFieldsForType("typeToValidate");
+        assertThat(fields, hasItems( "ObjectWithType.SubType.field1", "ObjectWithTypeAndAlias.AliasedSubType.field1"));
+    }
+
 
     private static class TestObjectWithAllValidators {
 

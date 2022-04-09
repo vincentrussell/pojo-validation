@@ -23,7 +23,10 @@ import com.github.vincentrussell.validation.scanner.ReverseConnectionScanner;
 import com.github.vincentrussell.validation.tree.TreeNode;
 import com.github.vincentrussell.validation.type.TypeDeterminer;
 import com.github.vincentrussell.validation.util.ReflectionUtils;
+import org.apache.commons.collections4.iterators.PeekingIterator;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.mutable.MutableBoolean;
+import org.apache.commons.lang3.mutable.MutableLong;
 import org.reflections.Reflections;
 import org.reflections.ReflectionsException;
 import org.reflections.scanners.FieldAnnotationsScanner;
@@ -44,7 +47,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.Stack;
+import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static org.apache.commons.lang3.ObjectUtils.firstNonNull;
 import static org.apache.commons.lang3.Validate.notNull;
@@ -59,13 +65,16 @@ public final class ValidationService {
     private final Reflections reflections;
     private final Set<Field> fieldsMarkedWithValidation = new HashSet<>();
     private final Set<Class> classesToValidate = new HashSet<>();
-    private final Map<Class, Set<Field>> classToFieldsMap = new HashMap<>();
+    private final Map<Class, Set<Field>> classToFieldsSetMap = new HashMap<>();
     private final Map<Field, Set<String>> fieldToValidatorNames = new HashMap<>();
     private final Map<Field, Set<String>> fieldToTypes = new HashMap<>();
+    private final Map<String, Set<Field>> typeToFields = new HashMap<>();
     private final Map<String, Validator> validatorNameToValidator = new HashMap<>();
     private final Map<Field, String> fieldToErrorMessageMap = new HashMap<>();
     private final Map<Field, String> fieldToAliasMap = new HashMap<>();
     private final Map<Class, TypeDeterminer> classToTypeDeterminerMap = new HashMap<>();
+    private final Map<Field, String> fieldToAliasStackMapAsString = new HashMap<>();
+    private final Map<String, Field> stackMapAsStringToField = new HashMap<>();
 
     /**
      * Create a {@link com.github.vincentrussell.validation.ValidationService}.
@@ -163,23 +172,106 @@ public final class ValidationService {
 
     private void addStackToValidate(final LinkedList<TreeNode<Object>> classStack) {
         LinkedList<TreeNode<Object>> copy = new LinkedList<>(classStack);
-        final Field field = (Field) copy.pollLast().getData();
-
-        if (!fieldsMarkedWithValidation.contains(field)) {
-            return;
-        }
+        final Field field = (Field) copy.peekLast().getData();
 
         final List<TreeNode<Object>> list = new ArrayList<>(copy);
         Collections.reverse(list);
 
+        MutableBoolean addToClassesToValidate = new MutableBoolean(false);
         for (TreeNode<Object> treeNode : list) {
             if (Class.class.isInstance(treeNode.getData())) {
-                classesToValidate.add((Class) treeNode.getData());
+                if (fieldsMarkedWithValidation.contains(field)) {
+                    addToClassesToValidate.setTrue();
+                }
+                if (addToClassesToValidate.getValue()) {
+                    classesToValidate.add((Class) treeNode.getData());
+                }
             } else if (Field.class.isInstance(treeNode.getData())) {
-                classToFieldsMap.computeIfAbsent(((Field) treeNode.getData()).getDeclaringClass(),
-                        aClass -> new HashSet<>()).add((Field) treeNode.getData());
+                Class<?> declaringClass = ((Field) treeNode.getData()).getDeclaringClass();
+                if (fieldsMarkedWithValidation.contains(treeNode.getData()) || addToClassesToValidate.getValue()) {
+                    addToClassesToValidate.setTrue();
+                    classToFieldsSetMap.computeIfAbsent(declaringClass,
+                            aClass -> new HashSet<>()).add((Field) treeNode.getData());
+                }
+                if (addToClassesToValidate.getValue()) {
+                    classesToValidate.add(declaringClass);
+                }
+
+                long objectClassCount = classStack.stream().filter(new Predicate<TreeNode<Object>>() {
+                    @Override
+                    public boolean test(final TreeNode<Object> objectTreeNode) {
+                        return Object.class.equals(objectTreeNode.getData());
+                    }
+                }).count();
+
+                MutableLong mutableLong = new MutableLong(objectClassCount);
+                int objectClassIndex = IntStream.range(0, classStack.size())
+                        .filter(new IntPredicate() {
+                            @Override
+                            public boolean test(final int i) {
+                                if (Object.class.equals(classStack.get(i).getData())) {
+                                    mutableLong.decrement();
+                                    if (mutableLong.longValue() == 0) {
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            }
+                        })
+                        .findFirst()
+                        .orElse(-1);
+
+                List<TreeNode<Object>> copyOfList = (objectClassIndex != -1)
+                        ? classStack.subList(objectClassIndex + 1, classStack.size()) : new ArrayList<>(classStack);
+                String joinedFields = copyOfList.stream()
+                        .map(objectTreeNode -> objectTreeNode.getData().toString())
+                        .collect(Collectors.joining(","));
+                StringBuilder stringBuilder = new StringBuilder();
+
+                PeekingIterator<TreeNode<Object>> iterator = new PeekingIterator<>(copyOfList.iterator());
+                LinkedList<String> pushedAlias = new LinkedList<>();
+                while (iterator.hasNext()) {
+                    TreeNode<Object> node = iterator.next();
+                    TreeNode<Object> peek = iterator.peek();
+                    String alias = firstNonNull(pushedAlias.pollLast(), fieldToAliasMap.get(node.getData()));
+
+                    if (peek != null && Class.class.isInstance(peek.getData())
+                            && Field.class.isInstance(node.getData())
+                            && ((Field) node.getData()).getType().equals(peek.getData())) {
+                        if (alias != null) {
+                            pushedAlias.add(alias);
+                        }
+                        continue;
+                    }
+
+                    if (stringBuilder.length() > 0) {
+                        stringBuilder.append(".");
+                    }
+
+                    stringBuilder.append(alias != null ? alias : normalizeTreeNodeData(node.getData()));
+                }
+
+                String stackMap = fieldToAliasStackMapAsString.get(field);
+                if (stackMap == null || stackMap.length() < stringBuilder.length()) {
+                    boolean pathAlreadyMappedDeeper = stackMapAsStringToField.keySet()
+                            .stream().filter(s -> s.startsWith(joinedFields)).count() > 0;
+                    if (!pathAlreadyMappedDeeper) {
+                        fieldToAliasStackMapAsString.put(field, stringBuilder.toString());
+                        stackMapAsStringToField.put(joinedFields, field);
+                    }
+                }
+
             }
         }
+    }
+
+    private String normalizeTreeNodeData(final Object d) {
+        if (Class.class.isInstance(d)) {
+            return ((Class) d).getSimpleName();
+        } else if (Field.class.isInstance(d)) {
+            return ((Field) d).getName();
+        }
+        return d.toString();
     }
 
     private void findAndStorePathAliasAnnotations() {
@@ -208,7 +300,7 @@ public final class ValidationService {
         LOGGER.debug("adding class to validate {}", declaringClass.getName());
         LOGGER.debug("adding field to validate {}", field);
         classesToValidate.add(declaringClass);
-        classToFieldsMap.computeIfAbsent(declaringClass, aClass -> new HashSet<>()).add(field);
+        classToFieldsSetMap.computeIfAbsent(declaringClass, aClass -> new HashSet<>()).add(field);
         if (field.isAnnotationPresent(Validation.class)) {
             processValidationAnnotation(field);
         }
@@ -246,6 +338,7 @@ public final class ValidationService {
                 LOGGER.debug("found types to validate field={}, types={}", field, types);
                 fieldToTypes.computeIfAbsent(field, aClass -> new HashSet<>())
                         .addAll(typesSet);
+                typesSet.forEach(s -> typeToFields.computeIfAbsent(s, s1 -> new HashSet<>()).add(field));
             }
         }
     }
@@ -271,6 +364,7 @@ public final class ValidationService {
                 LOGGER.debug("found types to validate field={}, types={}", field, types);
                 fieldToTypes.computeIfAbsent(field, aClass -> new HashSet<>())
                         .addAll(typesSet);
+                typesSet.forEach(s -> typeToFields.computeIfAbsent(s, s1 -> new HashSet<>()).add(field));
             }
         }
     }
@@ -298,6 +392,59 @@ public final class ValidationService {
         notNull(name, "there must be a name for this validator " + validator.toString());
         LOGGER.info("addValidator key={}, validator={}", name, validator);
         validatorNameToValidator.put(name, validator);
+    }
+
+    /**
+     * return all of the fields that the Validation service knows about.
+     * @return the fields that the validation service knows about
+     */
+    public Collection<String> getAllFields() {
+        return new HashSet<>(fieldToAliasStackMapAsString.values());
+    }
+
+    /**
+     * Get the fields for type that have a particular validator.
+     * @param type the type that should have the validator
+     * @param validatorClass the class of the validator
+     * @return the fields that match the validator passed in
+     */
+    public Collection<String> getFieldsForTypeThatHaveValidator(final String type,
+                                                                final Class<? extends Validator> validatorClass) {
+        Set<Field> fieldsForType = firstNonNull(typeToFields.get(type), Collections.emptySet());
+        List<Class<? extends Validator>> validatorClasses = validatorClass != null ? Arrays.asList(validatorClass)
+                : Collections.emptyList();
+
+        if (fieldsForType.isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        return new HashSet<>(fieldToAliasStackMapAsString.entrySet().stream().filter(entry -> {
+            if (fieldsForType.contains(entry.getKey())) {
+                if (validatorClasses.isEmpty()) {
+                    return true;
+                }
+                Set<String> validatorNames = fieldToValidatorNames.get(entry.getKey());
+                Set<String> matchingValidatorNames = validatorNames.stream().filter(s -> {
+                    Validator validator = validatorNameToValidator.get(s);
+                    if (validator != null && validatorClasses.contains(validator.getClass())) {
+                        return true;
+                    }
+                    return false;
+                }).collect(Collectors.toSet());
+                return !matchingValidatorNames.isEmpty();
+            }
+            return false;
+        }).map(fieldStringEntry -> fieldStringEntry.getValue()).collect(Collectors.toSet()));
+    }
+
+
+    /**
+     * get the fields associated with a particular type that is determined by a type validator.
+     * @param type the specified type
+     * @return the fields referenced by the specified type
+     */
+    public Collection<String> getFieldsForType(final String type) {
+      return getFieldsForTypeThatHaveValidator(type, null);
     }
 
     /**
@@ -367,7 +514,7 @@ public final class ValidationService {
             doValidateMapObject(mainObject, validationResponse, pathStack, (Map) object, determinedType);
             return;
         }
-        for (Field field : firstNonNull(classToFieldsMap.get(type), Collections.<Field>emptyList())) {
+        for (Field field : firstNonNull(classToFieldsSetMap.get(type), Collections.<Field>emptyList())) {
             pathStack.add(firstNonNull(fieldToAliasMap.get(field), field.getName()));
             doValidateField(mainObject, validationResponse, pathStack, object, field, determinedType);
             pathStack.pop();

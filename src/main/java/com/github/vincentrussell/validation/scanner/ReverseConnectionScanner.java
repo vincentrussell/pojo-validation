@@ -1,6 +1,14 @@
 package com.github.vincentrussell.validation.scanner;
 
+import com.github.vincentrussell.validation.ValidationError;
+import com.github.vincentrussell.validation.ValidationResponse;
+import com.github.vincentrussell.validation.ValidationService;
+import com.github.vincentrussell.validation.Validator;
+import com.github.vincentrussell.validation.annotation.IgnoreValidation;
+import com.github.vincentrussell.validation.annotation.ValidatorInterpreter;
 import com.github.vincentrussell.validation.tree.TreeNode;
+import com.github.vincentrussell.validation.util.ValidationUtils;
+import org.reflections.ReflectionUtils;
 import org.reflections.Store;
 import org.reflections.scanners.AbstractScanner;
 import org.reflections.util.Utils;
@@ -8,10 +16,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static org.reflections.ReflectionUtils.forName;
 
@@ -27,11 +39,17 @@ public final class ReverseConnectionScanner extends AbstractScanner {
 
     private final TreeNode<Object> rootTreeNode = new TreeNode<>(Object.class);
 
+    private static Set<String> IGNORED_CLASSES = new HashSet<>(Arrays.asList(
+            ValidatorInterpreter.class.getName(), ValidationService.class.getName(), TreeNode.class.getName(),
+            ValidationError.class.getName(), ValidationResponse.class.getName(), ReflectionUtils.class.getName(),
+            ValidationUtils.class.getName()));
+
     /**
      * Default constructor.
      */
     public ReverseConnectionScanner() {
         classToTreeNodeMap.put(Object.class, rootTreeNode);
+        this.setResultFilter(s -> !IGNORED_CLASSES.contains(s));
     }
 
 
@@ -39,9 +57,13 @@ public final class ReverseConnectionScanner extends AbstractScanner {
     public void scan(final Object cls, final Store store) {
         final String className = getMetadataAdapter().getClassName(cls);
         final Class classObject = forName(className, getConfiguration().getClassLoaders());
-        if (!acceptResult(className)) {
+        if (!acceptResult(className) || classObject.isInterface()
+                || Validator.class.isAssignableFrom(classObject)
+                || classObject.isAnonymousClass() || shouldSkipTypeValidation(classObject)) {
             return;
         }
+
+
 
         final TreeNode<Object> thisNode = getClassNode(classObject);
 
@@ -50,6 +72,11 @@ public final class ReverseConnectionScanner extends AbstractScanner {
             final String fieldName = getMetadataAdapter().getFieldName(field);
             final String classAndField = String.format("%s.%s", className, fieldName);
             final Field fieldObj = Utils.getFieldFromString(classAndField, getConfiguration().getClassLoaders());
+
+            if (Modifier.isStatic(fieldObj.getModifiers())) {
+                continue;
+            }
+
             addFieldToTree(thisNode, fieldObj, field);
             put(store, className, classAndField);
         }
@@ -57,6 +84,10 @@ public final class ReverseConnectionScanner extends AbstractScanner {
         for (Object annotation : getMetadataAdapter().getClassAnnotationNames(cls)) {
             put(store, className, "@" + annotation);
         }
+    }
+
+    private boolean shouldSkipTypeValidation(final Class classObject) {
+        return classObject.getAnnotation(IgnoreValidation.class) != null;
     }
 
     private TreeNode<Object> getClassNode(final Class classObject) {

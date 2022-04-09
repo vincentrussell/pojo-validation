@@ -8,6 +8,7 @@ import javassist.CtField;
 import javassist.bytecode.AnnotationsAttribute;
 import javassist.bytecode.ClassFile;
 import javassist.bytecode.ConstPool;
+import javassist.bytecode.annotation.Annotation;
 import javassist.bytecode.annotation.BooleanMemberValue;
 import javassist.bytecode.annotation.ByteMemberValue;
 import javassist.bytecode.annotation.CharMemberValue;
@@ -22,7 +23,6 @@ import javassist.bytecode.annotation.StringMemberValue;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
-import javassist.bytecode.annotation.Annotation;
 import org.springframework.util.ReflectionUtils;
 
 import java.lang.reflect.Field;
@@ -34,7 +34,7 @@ import java.util.function.BiConsumer;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-
+@IgnoreValidation
 public class ValidatorInterpreterTest {
 
     @Rule

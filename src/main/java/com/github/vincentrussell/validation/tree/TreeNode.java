@@ -96,6 +96,7 @@ public final class TreeNode<T> {
     @Override
     public String toString() {
         return new ToStringBuilder(this, ToStringStyle.SIMPLE_STYLE).
+                append("type", data.getClass().getSimpleName()).
                 append("data", data.toString()).
                 toString();
     }
